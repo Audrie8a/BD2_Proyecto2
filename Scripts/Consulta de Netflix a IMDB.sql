@@ -1,0 +1,1 @@
+select * from [IMBD AZURE].[IMDB].[dbo].[PRUEBA];
