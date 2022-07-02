@@ -205,11 +205,10 @@ const MongoClient = require('mongodb').MongoClient
 var db;
 var collection;
 
-MongoClient.connect('mongodb://db2:123@18.188.57.179:27017/test', { useNewUrlParser: true, useUnifiedTopology: true }, (err, client) => {
+MongoClient.connect('mongodb://db2:123@3.143.249.36:27017/test', { useNewUrlParser: true, useUnifiedTopology: true }, (err, client) => {
     if (err) return console.error(err)
     console.log('Connected to Database')
     db = client.db('test')
-    collection = db.collection('prueba')
     // console.log(collection);
 })
 
@@ -227,13 +226,10 @@ exports.getUsuarios = async (req, res) => {
 exports.insertData = async (req, res) => {
     try {
         const idTitles = await this.get_idTitles()
-        await db.collection("data").drop(function (err, delOK) {
-            if (err) console.log("No existe Data!");
-            if (delOK) console.log("Collection deleted");
-           
-        });
+        
         for (let index = 0; index < idTitles.length; index++) {
             let id = idTitles[index];
+            
             const details = await this.detailed_title(id);
             const cast = await this.cast_table(id);
             const director = await this.get_creator(id, 'director');
@@ -247,7 +243,7 @@ exports.insertData = async (req, res) => {
                 "startYear": details.startYear,
                 "endYear": details.endYear,
                 "runtime": details.runtime,
-                "titleType": details.titleType,
+                "titleType": details.Tipo,
                 "cast": cast,
                 "director": director,
                 "writer": writer,
@@ -257,7 +253,27 @@ exports.insertData = async (req, res) => {
             await db.collection('data').insertOne(data)
         }
 
-        return res.json("Actualizado!");
+        return res.status(200).json("Actualizado!");
+
+    } catch (error) {
+        console.log(error)
+        return res.status(400).json("Error al actualizar!")
+    }
+
+
+}
+
+exports.getData = async (req, res) => {
+    try {
+        
+        
+        await db.collection('data').find().toArray()
+        .then(results => {
+            return res.status(200).json(results);
+        }).catch(error => {
+            console.error(error);
+            return res.status(400).json("error");
+        });
 
     } catch (error) {
         console.log(error)
@@ -266,3 +282,27 @@ exports.insertData = async (req, res) => {
 
 
 }
+
+exports.dropData = async (req, res) => {
+    try {
+        
+        
+        await db.collection("data").drop(function (err, delOK) {
+            if (err) {
+                console.log("No existe Data!");
+                return res.json("No existe Data");
+            }
+            if (delOK) {
+                console.log("Collection deleted");
+                return res.status(200).json("Borrado!");
+            }
+           
+        });
+    } catch (error) {
+        console.log(error)
+        return res.json("Error al actualizar!")
+    }
+
+
+}
+
